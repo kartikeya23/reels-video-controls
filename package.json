@@ -1,0 +1,14 @@
+{
+  "name": "reels-video-controls",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firefox extension that adds video controls to Instagram Reels and feed videos.",
+  "scripts": {
+    "start": "web-ext run --source-dir src --start-url https://www.instagram.com/reels/",
+    "lint": "web-ext lint --source-dir src",
+    "build": "web-ext build --source-dir src --artifacts-dir dist --overwrite-dest"
+  },
+  "devDependencies": {
+    "web-ext": "^8.0.0"
+  }
+}

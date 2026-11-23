@@ -1,0 +1,194 @@
+#igvc-bar {
+  position: fixed;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.35) 75%, rgba(0, 0, 0, 0));
+  color: #fff;
+  font: 500 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  user-select: none;
+  -moz-user-select: none;
+}
+#igvc-bar.igvc-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+#igvc-bar.igvc-hidden {
+  display: none;
+}
+#igvc-bar button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+}
+#igvc-bar button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+#igvc-bar button:focus-visible {
+  outline: 2px solid #fff;
+}
+#igvc-bar svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+#igvc-bar .igvc-time {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.95;
+}
+#igvc-bar .igvc-speed {
+  padding: 0 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Seek bar */
+#igvc-bar .igvc-seek {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+}
+#igvc-bar .igvc-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  transition: height 0.1s;
+}
+#igvc-bar .igvc-seek:hover .igvc-track {
+  height: 6px;
+}
+#igvc-bar .igvc-buffered,
+#igvc-bar .igvc-played {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+}
+#igvc-bar .igvc-buffered {
+  background: rgba(255, 255, 255, 0.4);
+}
+#igvc-bar .igvc-played {
+  background: #fff;
+}
+#igvc-bar .igvc-hover-time {
+  position: absolute;
+  bottom: 20px;
+  transform: translateX(-50%);
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  display: none;
+}
+#igvc-bar .igvc-seek:hover .igvc-hover-time {
+  display: block;
+}
+
+/* Range inputs (transparent, sit on top of the custom track) */
+#igvc-bar input[type="range"] {
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+#igvc-bar .igvc-seek input[type="range"] {
+  position: relative;
+  width: 100%;
+  height: 16px;
+}
+#igvc-bar input[type="range"]::-moz-range-track {
+  background: transparent;
+  border: 0;
+}
+#igvc-bar .igvc-seek input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+#igvc-bar .igvc-seek:hover input[type="range"]::-moz-range-thumb {
+  opacity: 1;
+}
+
+/* Volume */
+#igvc-bar .igvc-volume {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+#igvc-bar .igvc-volume input[type="range"] {
+  width: 64px;
+  height: 16px;
+}
+#igvc-bar .igvc-volume input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+#igvc-bar .igvc-volume input[type="range"]::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: #fff;
+}
+#igvc-bar .igvc-volume input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* Compact layout for narrow videos (e.g. feed) */
+#igvc-bar.igvc-narrow .igvc-volume input[type="range"],
+#igvc-bar.igvc-narrow .igvc-duration {
+  display: none;
+}
+
+/* On-video flash indicator (speed / seek feedback) */
+#igvc-toast {
+  position: fixed;
+  z-index: 2147483001;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font: 600 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s ease;
+}
+#igvc-toast.igvc-show {
+  opacity: 1;
+}

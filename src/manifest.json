@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "Reels Video Controls",
+  "version": "1.0.0",
+  "description": "Adds proper video controls to Instagram Reels and feed videos: seek bar, volume, playback speed, fullscreen and keyboard shortcuts.",
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.instagram.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "reels-video-controls@local",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}
