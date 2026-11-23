@@ -16,7 +16,7 @@ Firefox WebExtension (Manifest V2) that overlays video controls on Instagram vid
 - Pointer/click events on the bar are `stopPropagation`'d so Instagram's handlers (tap-to-pause/mute) don't fire. React's root listener isn't an ancestor of `body`-level nodes anyway.
 - Media events don't bubble, so they're listened to on `document` in the capture phase.
 - **Prefs** (`volume`, `muted`, `speed`, `userSetVolume`) live in `browser.storage.local` and are reapplied on every `play`. Unmuting is skipped unless `navigator.userActivation.hasBeenActive`, otherwise Firefox's autoplay policy pauses the video.
-- `ourVolumeChange` flag distinguishes our volume writes from Instagram's; Instagram mute-button clicks are captured as prefs only when `userActivation.isActive`.
+- `volumechange` is async, so it is compared with prefs (no own-write flag). Mismatches are saved only after a click over that video outside reels pages, or in fullscreen; otherwise prefs are reapplied (max 5 times), because Instagram mutes new reels itself. The native mute button is hidden on reels via `html[data-igvc-reels]`.
 - Fullscreen: `video.requestFullscreen()` + temporarily set `video.controls = true` (our body-level bar isn't visible inside element fullscreen); removed on exit.
 - No DOM HTML strings (`innerHTML`) — AMO's linter flags them. Build nodes with `el()` / `icon()` helpers.
 

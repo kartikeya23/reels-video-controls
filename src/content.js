@@ -6,7 +6,7 @@
 
   const api = typeof browser !== "undefined" ? browser : chrome;
   const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
-  const BAR_HEIGHT = 44;
+  const BAR_HEIGHT = 32;
   const HIDE_DELAY = 2200;
 
   // ---------- Preferences (persisted) ----------
@@ -116,7 +116,9 @@
   let hovering = false;
   let lastMove = 0;
   let fsControlsAdded = null;
-  let ourVolumeChange = false;
+  let volumeFixes = 0;     // consecutive reverts of Instagram's volume changes
+  let nativeClick = null;  // last click over a video: { video, time }
+  const onReels = () => /\/reels?(\/|$)/.test(location.pathname);
 
   // ---------- Pick the video in view ----------
   function visibleRect(v) {
@@ -153,6 +155,8 @@
     active = v;
     if (!v) { bar.classList.add("igvc-hidden"); return; }
     bar.classList.remove("igvc-hidden");
+    volumeFixes = 0;
+    if (!v.paused) applyVolume(v);
     refreshAll();
   }
 
@@ -229,7 +233,14 @@
   }
 
   // Re-pick the active video regularly (Instagram is a SPA with infinite scroll).
-  setInterval(() => { mount(); pickVideo(); }, 300);
+  function tick() {
+    // Lets content.css hide Instagram's mute button on reels pages only.
+    document.documentElement.toggleAttribute("data-igvc-reels", onReels());
+    mount();
+    pickVideo();
+  }
+  tick();
+  setInterval(tick, 300);
   window.addEventListener("scroll", () => pickVideo(), { passive: true, capture: true });
   requestAnimationFrame(frame);
 
@@ -260,10 +271,9 @@
   }
   function setVolume(v, muted) {
     if (!active) return;
-    ourVolumeChange = true;
     active.volume = clamp(v, 0, 1);
     active.muted = muted;
-    ourVolumeChange = false;
+    volumeFixes = 0;
     prefs.volume = active.volume;
     prefs.muted = muted;
     prefs.userSetVolume = true;
@@ -375,16 +385,26 @@
   // ---------- Media events (capture on document; media events don't bubble) ----------
   function applyPrefs(v) {
     if (Math.abs(v.playbackRate - prefs.speed) > 0.001) v.playbackRate = prefs.speed;
-    if (prefs.userSetVolume) {
-      ourVolumeChange = true;
-      v.volume = prefs.volume;
-      // Only unmute if the page has had a user gesture, otherwise Firefox blocks autoplay.
-      const activated = !navigator.userActivation || navigator.userActivation.hasBeenActive;
-      if (!prefs.muted && activated) v.muted = false;
-      else if (prefs.muted) v.muted = true;
-      ourVolumeChange = false;
-    }
+    applyVolume(v);
   }
+  function applyVolume(v) {
+    if (!prefs.userSetVolume) return;
+    v.volume = prefs.volume;
+    // Only unmute if the page has had a user gesture, otherwise Firefox blocks autoplay.
+    const activated = !navigator.userActivation || navigator.userActivation.hasBeenActive;
+    if (prefs.muted) v.muted = true;
+    else if (activated) v.muted = false;
+  }
+
+  // Remember clicks over a video so a native mute click can be told apart from
+  // Instagram muting on its own. Uses the target's center so keyboard clicks work too.
+  document.addEventListener("click", (e) => {
+    if (!e.isTrusted || !activeRect || !(e.target instanceof Element) || bar.contains(e.target)) return;
+    const t = e.target.getBoundingClientRect();
+    const x = t.left + t.width / 2, y = t.top + t.height / 2, r = activeRect;
+    const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    nativeClick = inside ? { video: active, time: performance.now() } : null;
+  }, true);
 
   document.addEventListener("play", (e) => {
     if (e.target instanceof HTMLVideoElement) {
@@ -399,12 +419,20 @@
   document.addEventListener("volumechange", (e) => {
     const v = e.target;
     if (v !== active) return;
-    // If the user toggled Instagram's own mute button, remember that choice too.
-    if (!ourVolumeChange && navigator.userActivation && navigator.userActivation.isActive) {
-      prefs.muted = v.muted;
-      prefs.volume = v.volume;
-      prefs.userSetVolume = true;
-      savePrefs();
+    const differs = v.muted !== prefs.muted || Math.abs(v.volume - prefs.volume) > 0.001;
+    if (differs) {
+      // volumechange is async, so compare with prefs instead of flagging our own writes.
+      // Reels have no native mute button (we hide it), so Instagram's changes there are never the user's.
+      const clicked = !onReels() && nativeClick && nativeClick.video === v &&
+        performance.now() - nativeClick.time < 500;
+      if (clicked || document.fullscreenElement === v) {
+        prefs.muted = v.muted;
+        prefs.volume = v.volume;
+        prefs.userSetVolume = true;
+        savePrefs();
+      } else if (volumeFixes++ < 5) { // capped so we can't fight Instagram forever
+        applyVolume(v);
+      }
     }
     refreshVolume();
   }, true);

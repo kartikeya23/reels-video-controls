@@ -5,7 +5,7 @@
   align-items: center;
   gap: 8px;
   box-sizing: border-box;
-  height: 44px;
+  height: 32px;
   padding: 0 10px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.35) 75%, rgba(0, 0, 0, 0));
   color: #fff;
@@ -191,4 +191,13 @@
 }
 #igvc-toast.igvc-show {
   opacity: 1;
+}
+
+/* Hide Instagram's own mute button and the volume slider pill wrapping it on reels
+   (our bar has both). Only the innermost button matches, so a tap-to-pause overlay wrapping it stays usable.
+   ponytail: matches English labels only; add other locales' labels if needed. */
+html[data-igvc-reels] :is(button, [role="button"]):has(svg:is([aria-label="Audio is muted" i], [aria-label="Audio is playing" i])):not(:has(button, [role="button"])),
+html[data-igvc-reels] [role="slider"]:is([aria-label="Adjust volume" i], :has(svg:is([aria-label="Audio is muted" i], [aria-label="Audio is playing" i]))),
+html[data-igvc-reels] :is(button, [role="button"])[aria-label="Toggle audio" i] {
+  display: none !important;
 }
